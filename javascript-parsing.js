@@ -1,19 +1,26 @@
 import puppeteer from 'puppeteer';
 import fs from 'fs';
 import { parse } from 'csv-parse';
-import lighthouse from 'lighthouse';
-import * as chromeLauncher from 'chrome-launcher';
-import {ReportGenerator} from 'lighthouse/report/generator/report-generator.js';
-import request from 'request';
-import util from 'util';
-
-
-
+// Lighthouse script for getting URL JS elements
+import lighthouseFromPuppeteer from './lighthouse-audit.js';
 // LightHouse Options
+import perfConfig  from './config/perf-config.js';
+
+const lighthouseOptions = {
+  extends: 'lighthouse:default',
+  settings: {
+    onlyCategories: ['accessibility'],
+    emulatedFormFactor:'desktop',
+    output: ['html'],
+  },
+}
 const options = {
   logLevel: 'info',
   disableDeviceEmulation: true,
-  chromeFlags: ['--disable-mobile-emulation'],
+  chromeFlags: [
+    '--disable-mobile-emulation',
+    '--headless'
+  ],
 };
 // Lighthouse Conditions
 //Emulating conditions
@@ -34,32 +41,10 @@ const emulatedConditions = {
 console.log(emulatedConditions.deviceSpeed.slow3g);
 
 
-// Lighthouse script for getting URL JS elements
-
-async function lighthouseFromPuppeteer(url, options, config = null) {
-  // Launch chrome using chrome-launcher
-  const chrome = await chromeLauncher.launch(options);
-  options.port = chrome.port;
-
-  // Connect chrome-launcher to puppeteer
-  const resp = await util.promisify(request)(`http://localhost:${options.port}/json/version`);
-  const { webSocketDebuggerUrl } = JSON.parse(resp.body);
-  const browser = await puppeteer.connect({ browserWSEndpoint: webSocketDebuggerUrl });
-
-  // Run Lighthouse
-  const { lhr } = await lighthouse(url, options, config);
-  await browser.disconnect();
-  await chrome.kill();
-
-  const json = ReportGenerator.generateReport(lhr, 'json');
-
-  const audits = JSON.parse(json).audits; // Lighthouse audits
-
-  console.log(audits);
-}
 
 
 async function getPerformanceData(url) {
+
       const browser = await puppeteer.launch();
       const page = await browser.newPage();
       // await page.emulateNetworkConditions(puppeteer.networkConditions['Slow 3G']);
@@ -110,24 +95,25 @@ async function getPerformanceData(url) {
 (async () => {
   try{
     const urls = []
-    await fs.createReadStream('documents/list_urls.csv')
-    .pipe(parse({delimiter: ','}))
-    .on('data', async (row) => {
-      urls.push(row.url)
-    })
-    .on('end', async () => {
+    fs.createReadStream('documents/list_urls.csv')
+      .pipe(parse({ delimiter: ',' }))
+      .on('data', async (row) => {
+        console.log(row);
+        urls.push(row[0]);
+        console.log(urls);
 
-      for (let i = 0; i < urls.length; i++){
-        const url = urls[i];
-        await Promise.all([
-          console.log(`Running Script for URL: ${url}` ),
-          lighthouseFromPuppeteer(url, options),
-          getPerformanceData(url),
-        ])
-      }
+      })
+      .on('end', async () => {
+        for (let i = 0; i < urls.length; i++) {
+          const url = urls[i];
+          await Promise.all([
+            console.log(`Running Script for URL: ${url}`),
+            lighthouseFromPuppeteer(url, options, perfConfig),
+            // getPerformanceData(url),
+          ]);
+        }
 
-      
-    })
+      })
 
     const data = [
       ['URL', 'Load Time', 'Bytes Used'],
