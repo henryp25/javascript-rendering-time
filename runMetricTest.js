@@ -56,7 +56,7 @@ async function runMetricTest(){
         }
         
       });
-  
+      
       
     });
     observer.observe({ type: ['first-contentful-paint','largest-contentful-paint', "layout-shift", "long-animation-frame"], buffered: true });

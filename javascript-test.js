@@ -1,5 +1,3 @@
-const puppeteer = require('puppeteer');
-import {PredefinedNetworkConditions} from 'puppeteer';
 import puppeteer from 'puppeteer';
 import fs from 'fs';
 import { parse } from 'csv-parse';
@@ -8,27 +6,14 @@ import lighthouseFromPuppeteer from './config/lighthouse-audit.js';
 // LightHouse Options
 import perfConfig  from './config/perf-config.js';
 
-
-//  Measure the page load time
-const slow3G = PredefinedNetworkConditions['Slow 3G'];
-const fast3G = PredefinedNetworkConditions['Fast 3G'];
-const slow4g = PredefinedNetworkConditions['Slow 4G'];
-const fast4G = PredefinedNetworkConditions['Fast 4G'];
-
-
-// Device to emulate
-const device = 'mobile';
-
-// Lighthouse conditions
-const perfConfig = {
-    extends: 'lighthouse:default',
-    settings: {
-      throttlingMethod: 'devtools',
-      emulatedFormFactor:{device},
-      onlyCategories: ['performance'],
-    },
-  };
-
+const lighthouseOptions = {
+  extends: 'lighthouse:default',
+  settings: {
+    onlyCategories: ['accessibility'],
+    emulatedFormFactor:'desktop',
+    output: ['html'],
+  },
+}
 const options = {
   logLevel: 'info',
   disableDeviceEmulation: true,
@@ -37,8 +22,7 @@ const options = {
     '--headless'
   ],
 };
-
-
+// Lighthouse Conditions
 //Emulating conditions
 const emulatedConditions = {
   offline: false,
@@ -48,13 +32,17 @@ const emulatedConditions = {
   cpuSlowdown: 4,
   deviceSpeed: [
     {
-      'slow3g':slow3G,
-      'fast3g':fast3G,
-      'slow4g':slow4g,
-      'fast4g':fast4G
+      'slow3g':'Slow 3G',
+      'fast3g':'Fast 3G',
+      'regular3g':'Regular 3G',
     }
   ]
       };
+console.log(emulatedConditions.deviceSpeed.slow3g);
+
+
+
+
 
 
 
@@ -75,7 +63,7 @@ const emulatedConditions = {
           await Promise.all([
             console.log(`Running Script for URL: ${url}`),
             lighthouseFromPuppeteer(url, options, perfConfig),
-            // runPerformanceReview(url),
+            // getPerformanceData(url),
           ]);
         }
 
@@ -91,6 +79,7 @@ const emulatedConditions = {
         console.error(err);
       }
     });
+
   
   }catch(err){
     console.error(err);
