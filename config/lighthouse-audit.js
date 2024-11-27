@@ -45,7 +45,7 @@ async function lighthouseFromPuppeteer(url, options, config) {
 
     // Creating audit variables for file
     
-
+    return lighthouseReport
   console.log(lighthouseReport);
 }
 
