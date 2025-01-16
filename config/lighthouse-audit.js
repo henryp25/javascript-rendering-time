@@ -36,7 +36,6 @@ async function lighthouseFromPuppeteer(url, options, config) {
     const totalByteWeight = audits['total-byte-weight'].numericValue;
     // Script Analysis
     const scriptTreemapData = audits['script-treemap-data'].details.nodes;
-    console.log(scriptTreemapData)
     for (let i = 0; i < scriptTreemapData.length; i++) {
         const ResourceSize = scriptTreemapData[i].resourceBytes
         const UnusedBytes = scriptTreemapData[i].unusedBytes

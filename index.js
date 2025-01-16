@@ -65,36 +65,34 @@ const options = {
           }
           console.log('Performance Testing Complete');
           performanceResults.push(performanceTest);
+          fs.writeFile('documents/jsonTests/performance.json', JSON.stringify(performanceResults), (err) => {
+            if (err) {
+                console.error(err);
+            }
+        });
         } 
-
-
         console.log(performanceResults)
-        fs.writeFile('documents/jsonTests/performance.json', JSON.stringify(performanceResults), (err) => {
-          if (err) {
-              console.error(err);
-          }
-      }
-      );
-        // Write the results to a csv file
-        // const csv = performanceResults.map((row) => {
-        //     return [
-        //       row.lighthouse.totalByteWeight,
-        //       row.lighthouse.scriptTreemapData,
-        //       row.lighthouse.resourceSummary,
-        //       row.lighthouse.diagnostics,
-        //       row.consolePerformance.lcp,
-        //       row.consolePerformance.cls,
-        //       row.consolePerformance.inp,
-        //     ];
+        const results = '/lighthouse.json'
+        console.log(results)
+        const csv = performanceResults.map((row) => {
+            return [
+              row.lighthouse.totalByteWeight,
+              row.lighthouse.scriptTreemapData,
+              row.lighthouse.resourceSummary,
+              row.lighthouse.diagnostics,
+              row.consolePerformance.lcp,
+              row.consolePerformance.cls,
+              row.consolePerformance.inp,
+            ];
 
-        // }
-        // ).join('\n');
+        }
+        ).join('\n');
    
-        // fs.writeFile('documents/performance.csv', csv, (err) => {
-        //   if (err) {
-        //     console.error(err);
-        //   }
-        // });
+        fs.writeFile('documents/performance.csv', csv, (err) => {
+          if (err) {
+            console.error(err);
+          }
+        });
 
       })
 
